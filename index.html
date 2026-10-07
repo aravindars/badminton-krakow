@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luda's Calculator</title>
+    
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Ludas%20Calculator%22,%22short_name%22:%22LudaCalc%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%236366f1%22}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2851/2851574.png">
+
+    <style>
+        :root {
+            --primary: #6366f1; --secondary: #a855f7;
+            --glass: rgba(255, 255, 255, 0.9); --text: #0f172a;
+            --success: #10b981; --error: #ef4444;
+        }
+
+        body { 
+            font-family: -apple-system, system-ui, sans-serif; 
+            background: linear-gradient(135deg, #e0e7ff 0%, #fae8ff 100%);
+            margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; color: var(--text);
+        }
+
+        .container { 
+            background: var(--glass); backdrop-filter: blur(10px);
+            width: 100%; max-width: 420px; padding: 25px; border-radius: 24px; 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5);
+            box-sizing: border-box;
+        }
+
+        h1 { font-size: 1.6rem; text-align: center; margin: 0; color: #4338ca; }
+        .subtitle { text-align: center; font-size: 0.8rem; color: #6366f1; margin-bottom: 20px; font-weight: 500; }
+        .section-label { font-size: 0.65rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin: 15px 0 8px 0; letter-spacing: 1px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .input-grid-three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        label { display: block; font-size: 0.7rem; font-weight: 700; margin-bottom: 4px; color: #475569; }
+        input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1rem; box-sizing: border-box; outline: none; background: rgba(255,255,255,0.8); }
+        .select-wrapper { position: relative; }
+        .select-wrapper select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 1rem; appearance: none; background: rgba(255,255,255,0.8); cursor: pointer; }
+        .select-wrapper::after { content: ""; position: absolute; right: 15px; top: 50%; width: 8px; height: 8px; border-right: 2px solid var(--primary); border-bottom: 2px solid var(--primary); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+        
+        .switch-container { display: flex; align-items: center; gap: 12px; background: white; padding: 14px; border-radius: 16px; border: 1px solid #e2e8f0; margin: 15px 0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .switch-container input[type="checkbox"] { width: 22px; height: 22px; margin: 0; cursor: pointer; accent-color: var(--primary); }
+        .switch-text-block { display: flex; flex-direction: column; flex: 1; }
+        .switch-title { font-size: 0.85rem; font-weight: 700; color: #4338ca; }
+        .switch-sub { font-size: 0.7rem; color: #64748b; font-weight: 500; line-height: 1.3; margin-top: 2px; }
+
+        button { width: 100%; padding: 16px; background: linear-gradient(to right, var(--primary), var(--secondary)); color: white; border: none; border-radius: 14px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        
+        #results { margin-top: 20px; display: block; }
+        .card { background: white; padding: 12px 16px; border-radius: 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f1f5f9; }
+        .label-text { font-size: 0.85rem; font-weight: 600; color: #64748b; }
+        .price-text { font-weight: 800; font-size: 1.2rem; color: #4338ca; }
+        .no-card { background: #f8fafc; border: 1px dashed #cbd5e1; }
+        
+        .warning-box { background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--error); padding: 14px; border-radius: 14px; margin-bottom: 15px; border: 1px solid rgba(239, 68, 68, 0.15); display: none; }
+        .warning-title { font-size: 0.75rem; font-weight: 800; color: var(--error); text-transform: uppercase; margin-bottom: 6px; display: block; }
+        .warning-text { font-size: 0.75rem; color: #475569; line-height: 1.5; margin: 0 0 8px 0; padding-left: 15px; }
+
+        .note-box { background: rgba(99, 102, 241, 0.05); padding: 12px; border-radius: 12px; margin-top: 15px; border: 1px solid rgba(99, 102, 241, 0.1); }
+        .note-title { font-size: 0.65rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .note-text { font-size: 0.7rem; color: #64748b; line-height: 1.4; margin: 0; padding: 0; list-style: none; }
+        .note-text li::before { content: "• "; color: var(--primary); }
+
+        .validation-box { margin-top: 10px; padding: 10px; border-radius: 12px; text-align: center; font-size: 0.7rem; font-weight: 700; }
+        .valid-ok { background: #d1fae5; color: var(--success); }
+        .footer { text-align: center; font-size: 0.7rem; color: #94a3b8; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏸 Luda's Calculator</h1>
+    <div class="subtitle">Fair-Share Splitter</div>
+    
+    <div class="section-label">Club Transaction</div>
+    <div class="input-grid">
+        <div class="input-group"><label>Full Fee</label><input type="number" id="fullFee" value="140"></div>
+        <div class="input-group"><label>Cash Paid</label><input type="number" id="cashPaid" value="50"></div>
+    </div>
+
+    <div class="input-grid-three">
+        <div class="input-group">
+            <label>Duration</label>
+            <div class="select-wrapper">
+                <select id="sessionHours">
+                    <option value="1">1 Hour</option>
+                    <option value="1.5">1.5 Hours</option>
+                    <option value="2" selected>2 Hours</option>
+                    <option value="2.5">2.5 Hours</option>
+                    <option value="3">3 Hours</option>
+                    <option value="3.5">3.5 Hours</option>
+                    <option value="4">4 Hours</option>
+                    <option value="4.5">4.5 Hours</option>
+                    <option value="5">5 Hours</option>
+                </select>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="courts">Courts</label>
+            <input type="number" id="courts" value="1" min="1" step="1">
+        </div>
+        <div class="input-group"><label>Actual Swipes</label><input type="number" id="actualSwipes" value="6"></div>
+    </div>
+    
+    <div class="input-grid">
+        <div class="input-group"><label>Shuttles</label><input type="number" id="shuttleCost" value="12.5"></div>
+    </div>
+
+    <div class="section-label">Player Counts</div>
+    <div class="input-grid-three">
+        <div><label>Plus</label><input type="number" id="cntPlus" value="3"></div>
+        <div><label>Light</label><input type="number" id="cntLight" value="0"></div>
+        <div><label>No Card</label><input type="number" id="cntNone" value="2"></div>
+    </div>
+
+    <div class="switch-container">
+        <input type="checkbox" id="modeToggle">
+        <div class="switch-text-block">
+            <span class="switch-title" id="modeTitle">🏸 Mode: Luda's Clear</span>
+            <span class="switch-sub" id="modeSub">Fixed fee for no-card players. Extra money discounts the shuttles.</span>
+        </div>
+    </div>
+
+<button type="button" id="calcBtn">Calculate Fair Split</button>
+    
+    <div id="results">
+        <div id="warningBox" class="warning-box">
+            <span class="warning-title">⚠️ Card Discount Mismatch</span>
+            <ul class="warning-text">
+                <li>Expected Cash Bill: <strong id="warnExpected">0.00</strong> PLN</li>
+                <li>Entered Cash Bill: <strong id="warnEntered">0.00</strong> PLN</li>
+                <li>Unexplained Difference: <strong id="warnDiff">0.00</strong> PLN</li>
+            </ul>
+        </div>
+
+        <div class="card"><span class="label-text" id="plusLabel">Plus</span><span id="resPlus" class="price-text"></span></div>
+        <div class="card"><span class="label-text" id="lightLabel">Light</span><span id="resLight" class="price-text"></span></div>
+        <div class="card no-card"><span class="label-text">No Card</span><span id="resNoCard" class="price-text"></span></div>
+        
+        <div id="insight-card" style="margin-bottom: 15px; font-size: 13px; color: #444; background: #fdfbff; padding: 14px; border-radius: 10px; border: 1px solid #e0d4f7;">
+            <h4 style="margin: 0 0 8px 0; color: #4338ca; font-size: 14px;">📊 Session Breakdown:</h4>
+            <div id="breakdownContent"></div>
+        </div>
+        
+        <div class="note-box">
+            <span class="note-title">LOGIC SUMMARY:</span>
+            <ul class="note-text">
+                <li>Card discounts apply ONLY to the court portion.</li>
+                <li>Shuttle costs are split equally among ALL players.</li>
+            </ul>
+        </div>
+
+        <div id="validationBox" class="validation-box"></div>
+        <div class="footer">Handcrafted for Luda</div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
