@@ -161,7 +161,7 @@ function calculate() {
                     <li>• <strong>Missing Swipe Balance:</strong> <strong>${remainingCourtCashToSplit.toFixed(2)}</strong> PLN <span style="color: #64748b; font-size: 11px;">(Paid proportionately only by cardless/light users)</span></li>
                     <li>• <strong>Shuttle Cost Pool:</strong> <strong>${shuttles.toFixed(2)}</strong> PLN <span style="color: #64748b; font-size: 11px;">(Split equally by all)</span></li>
                 </ul>
-                <div style="color: #4338ca; font-weight: bold; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; font-size: 12px;">
+                <div style="color: #78350f font-weight: bold; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; font-size: 12px;">
                     💡 Everyone splits the core court fee and shuttles. Only cardless and light users pay proportionately for missing swipes.
                 </div>`;
         } else {
@@ -185,7 +185,7 @@ function calculate() {
                     <li>• <strong>Shuttle Cost Pool:</strong> <strong>${shuttles.toFixed(2)}</strong> PLN</li>
                     <li>• <strong>Extra cash used to reduce shuttle costs for everyone:</strong> <strong style="color: #10b981;">${surplusCash.toFixed(2)}</strong> PLN</li>
                 </ul>
-                <div style="color: #4338ca; font-weight: bold; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; font-size: 12px;">
+                <div style="color: #78350f; font-weight: bold; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; font-size: 12px;">
                     💡 No-card players pay a flat share of the full court price. Extra cash collected reduces the shuttle bill for everyone.
                 </div>`;
         }
@@ -216,7 +216,7 @@ document.getElementById('modeToggle').addEventListener('change', function() {
     
     const breakdownContent = document.getElementById('breakdownContent');
     if (breakdownContent) {
-        breakdownContent.innerHTML = `<p style="color:#64748b; font-size:12px; font-style:italic;">Mode changed. Click 'Calculate Fair Split' to generate session information.</p>`;
+        breakdownContent.innerHTML = `<p style="color:#a16207; font-size:12px; font-style:italic;">Mode changed. Click 'Calculate Fair Split' to generate session information.</p>`;
     }
 });
 
