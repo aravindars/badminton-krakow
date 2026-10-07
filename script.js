@@ -208,7 +208,7 @@ document.getElementById('modeToggle').addEventListener('change', function() {
         title.innerText = "🏸 Mode: Aravind's Cross Drop";
         sub.innerText = "Court fee on top of max-swipes split by all. Missing swipes paid proportionately by no-card and light users.";
     } else {
-        title.innerText = "🏸 Mode: Luda's Clear";
+        title.innerText = "🏸 Mode: Clear";
         sub.innerText = "Fixed fee for no-card players. Extra money discounts the shuttles.";
     }
     const vBox = document.getElementById('validationBox');
