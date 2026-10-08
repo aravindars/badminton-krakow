@@ -64,7 +64,7 @@ function calculate() {
     // ==========================================
     // 3. Main Calculation Logic
     // ==========================================
-    let finalPlus = 0, finalLight = 0, finalNone = 0;
+    let finalPlus = 0, finalPlusDual = 0, finalLight = 0, finalNone = 0;
     const flatShareOfCourt = fullFee / totalPlayers;
     const shuttleShare = shuttles / totalPlayers;
 
@@ -74,7 +74,7 @@ function calculate() {
 
         if (isHardCeilingActive) {
             const flatSplit = (cashPaid + shuttles) / totalPlayers;
-            finalPlus = finalLight = finalNone = flatSplit;
+            finalPlus = finalPlusDual = finalLight = finalNone = flatSplit;
         } else {
             const baseFloorPerPerson = minimumStructuralFloor / totalPlayers;
             const remainingCourtCashToSplit = Math.max(0, cashPaid - minimumStructuralFloor);
@@ -93,19 +93,26 @@ function calculate() {
                 }
             }
             finalPlus = baseFloorPerPerson + courtDebtPlus + shuttleShare;
+            finalPlusDual = Math.max(0, finalPlus - lightMaxDiscount);
             finalLight = baseFloorPerPerson + courtDebtLight + shuttleShare;
             finalNone = baseFloorPerPerson + courtDebtNone + shuttleShare;
         }
         
     } else {
-        // ENGINE B: LUDA'S CLEAR
+        // ENGINE B: LUDA'S CLEAR (BUG-FREE DUAL CARD ENGINE)
+        const noCardRate = flatShareOfCourt;
         const lightCardRate = Math.max(0, flatShareOfCourt - Math.min(flatShareOfCourt, lightMaxDiscount));
         const plusCardRate = Math.max(0, flatShareOfCourt - Math.min(flatShareOfCourt, plusMaxDiscount));
-        const noCardRate = flatShareOfCourt;
+        const plusDualCardRate = Math.max(0, flatShareOfCourt - Math.min(flatShareOfCourt, plusMaxDiscount + lightMaxDiscount));
 
-        let totalCourtCashCollected = (noCardRate * cNone) + (lightCardRate * cLight) + (plusCardRate * cPlus);
+        // Total court cash collected considering single and dual cardholders separately
+        let totalCourtCashCollected = (noCardRate * cNone) + 
+                                      (lightCardRate * cLight) + 
+                                      (plusCardRate * cPlusSingle) + 
+                                      (plusDualCardRate * dualPlusCount);
         
         let finalCourtPlus = plusCardRate;
+        let finalCourtPlusDual = plusDualCardRate;
         let finalCourtLight = lightCardRate;
         let finalCourtNone = noCardRate;
 
@@ -115,6 +122,7 @@ function calculate() {
             const courtDeficitShare = shortFall / totalPlayers;
             
             finalCourtPlus += courtDeficitShare;
+            finalCourtPlusDual += courtDeficitShare;
             finalCourtLight += courtDeficitShare;
             finalCourtNone += courtDeficitShare;
             
@@ -127,6 +135,7 @@ function calculate() {
         const ludaShuttleShare = adjustedShuttlePool / totalPlayers;
 
         finalPlus = finalCourtPlus + ludaShuttleShare;
+        finalPlusDual = finalCourtPlusDual + ludaShuttleShare;
         finalLight = finalCourtLight + ludaShuttleShare;
         finalNone = finalCourtNone + ludaShuttleShare;
     }
@@ -135,11 +144,9 @@ function calculate() {
     // 4. Smart Penny Patch Rounding Balance
     // ==========================================
     let roundedPlus = Math.round(finalPlus * 100) / 100;
+    let roundedPlusDual = Math.round(finalPlusDual * 100) / 100;
     let roundedLight = Math.round(finalLight * 100) / 100;
     let roundedNone = Math.round(finalNone * 100) / 100;
-
-    // Dual Card rate applies an extra single-card deduction (lightMaxDiscount = 15 PLN) off the calculated Plus rate
-    let roundedPlusDual = Math.max(0, Math.round((finalPlus - lightMaxDiscount) * 100) / 100);
 
     const totalTargetToRecover = cashPaid + shuttles;
     let initialCheckSum = (roundedPlus * cPlusSingle) + 
@@ -212,9 +219,15 @@ function calculate() {
         } else {
             const lightCardRate = Math.max(0, flatShareOfCourt - Math.min(flatShareOfCourt, lightMaxDiscount));
             const plusCardRate = Math.max(0, flatShareOfCourt - Math.min(flatShareOfCourt, plusMaxDiscount));
+            const plusDualCardRate = Math.max(0, flatShareOfCourt - Math.min(flatShareOfCourt, plusMaxDiscount + lightMaxDiscount));
             const actualLightDiscount = flatShareOfCourt - lightCardRate;
             const actualPlusDiscount = flatShareOfCourt - plusCardRate;
-            const totalCourtCashCollected = (flatShareOfCourt * cNone) + (lightCardRate * cLight) + (plusCardRate * cPlus);
+            const actualPlusDualDiscount = flatShareOfCourt - plusDualCardRate;
+            
+            const totalCourtCashCollected = (flatShareOfCourt * cNone) + 
+                                          (lightCardRate * cLight) + 
+                                          (plusCardRate * cPlusSingle) + 
+                                          (plusDualCardRate * dualPlusCount);
             const surplusCash = Math.max(0, totalCourtCashCollected - cashPaid);
 
             breakdownContent.innerHTML = `
@@ -224,10 +237,10 @@ function calculate() {
                         <div style="padding-left: 10px; color: #64748b; font-size: 11px;">
                             No-Card User: ${flatShareOfCourt.toFixed(2)} PLN <em>(Flat share)</em><br>
                             Light User: ${lightCardRate.toFixed(2)} PLN <em>(Flat share - ${actualLightDiscount.toFixed(2)})</em><br>
-                            Plus User: ${plusCardRate.toFixed(2)} PLN <em>(Flat share - ${actualPlusDiscount.toFixed(2)})</em>
+                            Plus User: ${plusCardRate.toFixed(2)} PLN <em>(Flat share - ${actualPlusDiscount.toFixed(2)})</em><br>
+                            ${dualPlusCount > 0 ? `Plus + Medicover: ${plusDualCardRate.toFixed(2)} PLN <em>(Flat share -${actualPlusDualDiscount.toFixed(2)})</em>` : ''}
                         </div>
                     </li>
-                    ${dualPlusCount > 0 ? `<li>• <strong>Dual Card Extra Savings:</strong> <strong>${dualPlusCount}</strong> player(s) saved an extra <strong>${lightMaxDiscount.toFixed(2)}</strong> PLN each off their court share.</li>` : ''}
                     <li>• <strong>Shuttle Cost Pool:</strong> <strong>${shuttles.toFixed(2)}</strong> PLN</li>
                     <li>• <strong>Extra cash used to reduce shuttle costs for everyone:</strong> <strong style="color: #10b981;">${surplusCash.toFixed(2)}</strong> PLN</li>
                 </ul>
