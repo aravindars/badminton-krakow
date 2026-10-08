@@ -6,7 +6,7 @@ function calculate() {
     const shuttles = parseFloat(document.getElementById('shuttleCost').value) || 0;
     const hours = parseFloat(document.getElementById('sessionHours').value) || 1;
     const courts = parseInt(document.getElementById('courts').value, 10) || 1; 
-    const actualSwipes = parseInt(document.getElementById('actualSwipes').value, 10) || 0; // Direct input from desk
+    const actualSwipes = parseInt(document.getElementById('actualSwipes').value, 10) || 0;
 
     const cPlus = parseInt(document.getElementById('cntPlus').value, 10) || 0;
     const cLight = parseInt(document.getElementById('cntLight').value, 10) || 0;
@@ -36,7 +36,7 @@ function calculate() {
 
     // 2. MultiSport & Benefit Limits
     const plusMaxDiscount = Math.max(1, Math.floor(hours)) * 15.0; 
-    const lightMaxDiscount = 15.0;
+    const lightMaxDiscount = 15.0; // Extra Medicover card gives a 15 PLN discount
     const maxSwipesPerCourtPerHour = 4;
     const totalMaxSlotsAllowed = courts * maxSwipesPerCourtPerHour * hours;
     const minimumStructuralFloor = Math.max(0, fullFee - (totalMaxSlotsAllowed * 15));
@@ -138,8 +138,8 @@ function calculate() {
     let roundedLight = Math.round(finalLight * 100) / 100;
     let roundedNone = Math.round(finalNone * 100) / 100;
 
-    // Dual Card rate applies an extra plusMaxDiscount deduction off the calculated Plus rate
-    let roundedPlusDual = Math.max(0, Math.round((finalPlus - plusMaxDiscount) * 100) / 100);
+    // Dual Card rate applies an extra single-card deduction (lightMaxDiscount = 15 PLN) off the calculated Plus rate
+    let roundedPlusDual = Math.max(0, Math.round((finalPlus - lightMaxDiscount) * 100) / 100);
 
     const totalTargetToRecover = cashPaid + shuttles;
     let initialCheckSum = (roundedPlus * cPlusSingle) + 
@@ -204,7 +204,7 @@ function calculate() {
                     <li>• <strong>Court fee even after max-swipes:</strong> <strong>${minimumStructuralFloor.toFixed(2)}</strong> PLN <span style="color: #64748b; font-size: 11px;">(Split equally by all)</span></li>
                     <li>• <strong>Missing Swipe Balance:</strong> <strong>${remainingCourtCashToSplit.toFixed(2)}</strong> PLN <span style="color: #64748b; font-size: 11px;">(Paid proportionately only by cardless/light users)</span></li>
                     <li>• <strong>Shuttle Cost Pool:</strong> <strong>${shuttles.toFixed(2)}</strong> PLN <span style="color: #64748b; font-size: 11px;">(Split equally by all)</span></li>
-                    ${dualPlusCount > 0 ? `<li>• <strong>Dual Card Savings:</strong> <strong>${dualPlusCount}</strong> player(s) applied an extra Medicover card, reducing court cash balance by <strong>${(dualPlusCount * plusMaxDiscount).toFixed(2)}</strong> PLN.</li>` : ''}
+                    ${dualPlusCount > 0 ? `<li>• <strong>Dual Card Savings:</strong> <strong>${dualPlusCount}</strong> player(s) applied an extra Medicover card, reducing court cash balance by <strong>${(dualPlusCount * lightMaxDiscount).toFixed(2)}</strong> PLN.</li>` : ''}
                 </ul>
                 <div style="color: #78350f; font-weight: bold; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px; font-size: 12px;">
                     💡 Everyone splits the core court fee and shuttles. Only cardless and light users pay proportionately for missing swipes.
@@ -227,7 +227,7 @@ function calculate() {
                             Plus User: ${plusCardRate.toFixed(2)} PLN <em>(Flat share - ${actualPlusDiscount.toFixed(2)})</em>
                         </div>
                     </li>
-                    ${dualPlusCount > 0 ? `<li>• <strong>Dual Card Extra Savings:</strong> <strong>${dualPlusCount}</strong> player(s) saved an extra <strong>${plusMaxDiscount.toFixed(2)}</strong> PLN each off their court share.</li>` : ''}
+                    ${dualPlusCount > 0 ? `<li>• <strong>Dual Card Extra Savings:</strong> <strong>${dualPlusCount}</strong> player(s) saved an extra <strong>${lightMaxDiscount.toFixed(2)}</strong> PLN each off their court share.</li>` : ''}
                     <li>• <strong>Shuttle Cost Pool:</strong> <strong>${shuttles.toFixed(2)}</strong> PLN</li>
                     <li>• <strong>Extra cash used to reduce shuttle costs for everyone:</strong> <strong style="color: #10b981;">${surplusCash.toFixed(2)}</strong> PLN</li>
                 </ul>
@@ -248,7 +248,6 @@ function updateMaxLabels() {
 
 // --- EVENT HANDLERS & INITIALIZATION ---
 
-// Additional Cards (Medicover) Toggle Event
 const addCardsToggle = document.getElementById('addCardsToggle');
 const addCardsContainer = document.getElementById('addCardsContainer');
 const cntAddCards = document.getElementById('cntAddCards');
@@ -264,7 +263,6 @@ if (addCardsToggle) {
     });
 }
 
-// Mode Selector Change Hook
 document.getElementById('modeToggle').addEventListener('change', function() {
     const title = document.getElementById('modeTitle');
     const sub = document.getElementById('modeSub');
@@ -284,7 +282,6 @@ document.getElementById('modeToggle').addEventListener('change', function() {
     }
 });
 
-// Attach Calculation Button Action
 const calcBtn = document.getElementById('calcBtn') || document.querySelector('button');
 if (calcBtn) {
     calcBtn.addEventListener('click', function(e) {
@@ -293,12 +290,10 @@ if (calcBtn) {
     });
 }
 
-// Attach Live Label Tracker Inputs
 document.querySelectorAll('input, select').forEach(element => {
     element.addEventListener('input', updateMaxLabels);
 });
 
-// Initial Page Load Initialization
 window.onload = function() {
     updateMaxLabels();
     const vBox = document.getElementById('validationBox');
